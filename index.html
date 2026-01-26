@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 5rem;
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            animation: fadeInDown 1.5s ease-out;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 300;
+            letter-spacing: 0.3em;
+            color: #64b5f6;
+            text-shadow: 0 0 10px rgba(100, 181, 246, 0.5);
+            animation: fadeInUp 1.5s ease-out;
+            position: relative;
+            display: inline-block;
+        }
+
+        h2::after {
+            content: '|';
+            position: absolute;
+            right: -15px;
+            animation: blink 0.7s infinite;
+            color: #64b5f6;
+        }
+
+        h2.typing-complete::after {
+            animation: none;
+            opacity: 0;
+        }
+
+        @keyframes blink {
+            0%, 50% {
+                opacity: 1;
+            }
+            51%, 100% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 3rem;
+            }
+            h2 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div class="content">
+        <h1>Gagandeep Singh</h1>
+        <h2 id="subtitle"></h2>
+    </div>
+
+    <script>
+        // Typing animation with mistake
+        const subtitleText = "SOFTWARE DEVELOPER";
+        const mistakeText = "SOFTWARE DEVLOPER"; // Typo version
+        const subtitleElement = document.getElementById('subtitle');
+        let charIndex = 0;
+        let isMistake = true;
+        let isDeleting = false;
+        const mistakePoint = 14; // Where mistake starts being visible
+        const deleteFrom = 17; // When to start deleting
+
+        function typeText() {
+            const currentText = isMistake ? mistakeText : subtitleText;
+            
+            if (isDeleting) {
+                // Backspace
+                subtitleElement.textContent = currentText.substring(0, charIndex);
+                charIndex--;
+                
+                if (charIndex === mistakePoint) {
+                    isDeleting = false;
+                    isMistake = false;
+                    setTimeout(typeText, 200);
+                } else {
+                    setTimeout(typeText, 50);
+                }
+            } else if (charIndex < currentText.length) {
+                // Type forward
+                subtitleElement.textContent = currentText.substring(0, charIndex + 1);
+                charIndex++;
+                
+                // Check if we've typed the mistake completely
+                if (isMistake && charIndex === deleteFrom) {
+                    isDeleting = true;
+                    setTimeout(typeText, 800); // Pause before deleting
+                } else {
+                    setTimeout(typeText, 100);
+                }
+            } else {
+                // Finished typing
+                setTimeout(() => {
+                    subtitleElement.classList.add('typing-complete');
+                }, 1000);
+            }
+        }
+
+        setTimeout(typeText, 1500);
+
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        // Create starfield
+        const starGeometry = new THREE.BufferGeometry();
+        const starCount = 3000;
+        const positions = new Float32Array(starCount * 3);
+        
+        for (let i = 0; i < starCount * 3; i += 3) {
+            positions[i] = (Math.random() - 0.5) * 2000;
+            positions[i + 1] = (Math.random() - 0.5) * 2000;
+            positions[i + 2] = (Math.random() - 0.5) * 2000;
+        }
+        
+        starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const starMaterial = new THREE.PointsMaterial({ 
+            color: 0xffffff, 
+            size: 2,
+            transparent: true,
+            opacity: 0.8
+        });
+        const stars = new THREE.Points(starGeometry, starMaterial);
+        scene.add(stars);
+
+        // Create clouds
+        const clouds = [];
+        const cloudGeometry = new THREE.SphereGeometry(20, 8, 8);
+        const cloudMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0x4a90e2,
+            transparent: true,
+            opacity: 0.3,
+            shininess: 10
+        });
+
+        for (let i = 0; i < 30; i++) {
+            const cloud = new THREE.Mesh(cloudGeometry, cloudMaterial);
+            cloud.position.set(
+                Math.random() * 400 - 200,
+                Math.random() * 200 - 100,
+                Math.random() * 400 - 400
+            );
+            cloud.scale.set(
+                Math.random() * 2 + 1,
+                Math.random() * 0.5 + 0.5,
+                Math.random() * 2 + 1
+            );
+            clouds.push(cloud);
+            scene.add(cloud);
+        }
+
+        // Add ambient light
+        const ambientLight = new THREE.AmbientLight(0x404040, 1);
+        scene.add(ambientLight);
+
+        // Add directional light
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(100, 100, 50);
+        scene.add(directionalLight);
+
+        // Add point light for atmosphere
+        const pointLight = new THREE.PointLight(0x64b5f6, 1, 500);
+        pointLight.position.set(0, 50, 100);
+        scene.add(pointLight);
+
+        // Create spaceships
+        const spaceships = [];
+        function createSpaceship() {
+            const ship = new THREE.Group();
+            
+            // Main body
+            const bodyGeometry = new THREE.ConeGeometry(3, 12, 4);
+            const bodyMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x888888,
+                shininess: 30
+            });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.rotation.x = Math.PI / 2;
+            ship.add(body);
+            
+            // Wings
+            const wingGeometry = new THREE.BoxGeometry(12, 0.5, 4);
+            const wingMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x666666,
+                shininess: 20
+            });
+            const wings = new THREE.Mesh(wingGeometry, wingMaterial);
+            wings.position.z = -2;
+            ship.add(wings);
+            
+            // Cockpit
+            const cockpitGeometry = new THREE.SphereGeometry(1.5, 8, 8);
+            const cockpitMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x64b5f6,
+                transparent: true,
+                opacity: 0.7,
+                shininess: 100
+            });
+            const cockpit = new THREE.Mesh(cockpitGeometry, cockpitMaterial);
+            cockpit.position.z = 4;
+            cockpit.scale.z = 0.7;
+            ship.add(cockpit);
+            
+            // Engine glow
+            const engineLight = new THREE.PointLight(0x00ffff, 0.5, 20);
+            engineLight.position.z = -6;
+            ship.add(engineLight);
+            
+            return ship;
+        }
+
+        for (let i = 0; i < 8; i++) {
+            const ship = createSpaceship();
+            ship.position.set(
+                Math.random() * 400 - 200,
+                Math.random() * 200 - 100,
+                Math.random() * 300 - 300
+            );
+            ship.rotation.y = Math.random() * Math.PI * 2;
+            ship.userData.speed = Math.random() * 0.3 + 0.2;
+            ship.userData.rotationSpeed = (Math.random() - 0.5) * 0.01;
+            spaceships.push(ship);
+            scene.add(ship);
+        }
+
+        camera.position.z = 100;
+
+        // Mouse interaction
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // Animation
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate stars slowly
+            stars.rotation.y += 0.0002;
+            stars.rotation.x += 0.0001;
+
+            // Gentle camera movement
+            camera.position.x = Math.sin(Date.now() * 0.0001) * 10;
+            camera.position.y = Math.cos(Date.now() * 0.00015) * 5;
+            camera.lookAt(scene.position);
+
+            // Mouse interaction - smooth camera follow
+            targetX = mouseX * 30;
+            targetY = mouseY * 30;
+            camera.position.x += (targetX - camera.position.x) * 0.05;
+            camera.position.y += (targetY - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            // Parallax effect on clouds
+            clouds.forEach((cloud, i) => {
+                cloud.position.x += 0.1;
+                cloud.rotation.z += 0.001;
+                
+                // Mouse parallax
+                const depth = cloud.position.z / 400;
+                cloud.position.x += mouseX * depth * 0.5;
+                cloud.position.y += mouseY * depth * 0.5;
+                
+                if (cloud.position.x > 200) {
+                    cloud.position.x = -200;
+                }
+            });
+
+            // Mouse parallax on spaceships
+            spaceships.forEach((ship) => {
+                ship.position.x += ship.userData.speed;
+                ship.rotation.y += ship.userData.rotationSpeed;
+                ship.rotation.z = Math.sin(Date.now() * 0.001) * 0.1;
+                
+                // Parallax based on depth
+                const depth = ship.position.z / 300;
+                ship.position.x += mouseX * depth * 0.3;
+                ship.position.y += mouseY * depth * 0.3;
+                
+                if (ship.position.x > 250) {
+                    ship.position.x = -250;
+                    ship.position.y = Math.random() * 200 - 100;
+                    ship.position.z = Math.random() * 300 - 300;
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
