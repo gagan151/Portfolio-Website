@@ -2,6 +2,10 @@
   "use strict";
 
   const account = "gagan151";
+  const excludedRepositories = new Set([
+    "portfolio-website",
+    "gagan151.github.io",
+  ]);
   const list = document.getElementById("repository-list");
   const status = document.getElementById("repository-status");
   if (!list || !status) return;
@@ -15,8 +19,6 @@
       "Cross-platform futures dashboard with live charts and market event detection.",
     GreenShot:
       "On-device basketball detection and shot trajectory analysis for iPhone.",
-    "gagan151.github.io": "GitHub Pages website repository.",
-    "Portfolio-Website": "The source for this software developer portfolio.",
   };
   const featuredOrder = ["fomo-reader", "Trading-Dashboard", "GreenShot"];
 
@@ -115,7 +117,7 @@
       }
       const unique = [
         ...new Map(repositories.map((repo) => [repo.name, repo])).values(),
-      ];
+      ].filter((repo) => !excludedRepositories.has(repo.name.toLowerCase()));
       unique.sort((a, b) => {
         const aRank = featuredOrder.includes(a.name)
           ? featuredOrder.indexOf(a.name)
@@ -133,7 +135,7 @@
           element(
             "p",
             "repository-status",
-            "No public repositories are currently available on this GitHub account.",
+            "No public projects are currently available to display.",
           ),
         );
       list.replaceChildren(fragment);
