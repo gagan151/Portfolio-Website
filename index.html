@@ -1,379 +1,376 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
-            background: #000;
-        }
-
-        #canvas-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-
-        .content {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: white;
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 5rem;
-            font-weight: 300;
-            letter-spacing: 0.2em;
-            margin-bottom: 1rem;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-            animation: fadeInDown 1.5s ease-out;
-        }
-
-        h2 {
-            font-size: 1.8rem;
-            font-weight: 300;
-            letter-spacing: 0.3em;
-            color: #64b5f6;
-            text-shadow: 0 0 10px rgba(100, 181, 246, 0.5);
-            animation: fadeInUp 1.5s ease-out;
-            position: relative;
-            display: inline-block;
-        }
-
-        h2::after {
-            content: '|';
-            position: absolute;
-            right: -15px;
-            animation: blink 0.7s infinite;
-            color: #64b5f6;
-        }
-
-        h2.typing-complete::after {
-            animation: none;
-            opacity: 0;
-        }
-
-        @keyframes blink {
-            0%, 50% {
-                opacity: 1;
-            }
-            51%, 100% {
-                opacity: 0;
-            }
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 3rem;
-            }
-            h2 {
-                font-size: 1.2rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div id="canvas-container"></div>
-    <div class="content">
-        <h1>Gagandeep Singh</h1>
-        <h2 id="subtitle"></h2>
-    </div>
-
-    <script>
-        // Typing animation with mistake
-        const subtitleText = "SOFTWARE DEVELOPER";
-        const mistakeText = "SOFTWARE DEVLOPER"; // Typo version
-        const subtitleElement = document.getElementById('subtitle');
-        let charIndex = 0;
-        let isMistake = true;
-        let isDeleting = false;
-        const mistakePoint = 14; // Where mistake starts being visible
-        const deleteFrom = 17; // When to start deleting
-
-        function typeText() {
-            const currentText = isMistake ? mistakeText : subtitleText;
-            
-            if (isDeleting) {
-                // Backspace
-                subtitleElement.textContent = currentText.substring(0, charIndex);
-                charIndex--;
-                
-                if (charIndex === mistakePoint) {
-                    isDeleting = false;
-                    isMistake = false;
-                    setTimeout(typeText, 200);
-                } else {
-                    setTimeout(typeText, 50);
-                }
-            } else if (charIndex < currentText.length) {
-                // Type forward
-                subtitleElement.textContent = currentText.substring(0, charIndex + 1);
-                charIndex++;
-                
-                // Check if we've typed the mistake completely
-                if (isMistake && charIndex === deleteFrom) {
-                    isDeleting = true;
-                    setTimeout(typeText, 800); // Pause before deleting
-                } else {
-                    setTimeout(typeText, 100);
-                }
-            } else {
-                // Finished typing
-                setTimeout(() => {
-                    subtitleElement.classList.add('typing-complete');
-                }, 1000);
-            }
-        }
-
-        setTimeout(typeText, 1500);
-
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        container.appendChild(renderer.domElement);
-
-        // Create starfield
-        const starGeometry = new THREE.BufferGeometry();
-        const starCount = 3000;
-        const positions = new Float32Array(starCount * 3);
-        
-        for (let i = 0; i < starCount * 3; i += 3) {
-            positions[i] = (Math.random() - 0.5) * 2000;
-            positions[i + 1] = (Math.random() - 0.5) * 2000;
-            positions[i + 2] = (Math.random() - 0.5) * 2000;
-        }
-        
-        starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        const starMaterial = new THREE.PointsMaterial({ 
-            color: 0xffffff, 
-            size: 2,
-            transparent: true,
-            opacity: 0.8
-        });
-        const stars = new THREE.Points(starGeometry, starMaterial);
-        scene.add(stars);
-
-        // Create clouds
-        const clouds = [];
-        const cloudGeometry = new THREE.SphereGeometry(20, 8, 8);
-        const cloudMaterial = new THREE.MeshPhongMaterial({ 
-            color: 0x4a90e2,
-            transparent: true,
-            opacity: 0.3,
-            shininess: 10
-        });
-
-        for (let i = 0; i < 30; i++) {
-            const cloud = new THREE.Mesh(cloudGeometry, cloudMaterial);
-            cloud.position.set(
-                Math.random() * 400 - 200,
-                Math.random() * 200 - 100,
-                Math.random() * 400 - 400
-            );
-            cloud.scale.set(
-                Math.random() * 2 + 1,
-                Math.random() * 0.5 + 0.5,
-                Math.random() * 2 + 1
-            );
-            clouds.push(cloud);
-            scene.add(cloud);
-        }
-
-        // Add ambient light
-        const ambientLight = new THREE.AmbientLight(0x404040, 1);
-        scene.add(ambientLight);
-
-        // Add directional light
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(100, 100, 50);
-        scene.add(directionalLight);
-
-        // Add point light for atmosphere
-        const pointLight = new THREE.PointLight(0x64b5f6, 1, 500);
-        pointLight.position.set(0, 50, 100);
-        scene.add(pointLight);
-
-        // Create spaceships
-        const spaceships = [];
-        function createSpaceship() {
-            const ship = new THREE.Group();
-            
-            // Main body
-            const bodyGeometry = new THREE.ConeGeometry(3, 12, 4);
-            const bodyMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x888888,
-                shininess: 30
-            });
-            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-            body.rotation.x = Math.PI / 2;
-            ship.add(body);
-            
-            // Wings
-            const wingGeometry = new THREE.BoxGeometry(12, 0.5, 4);
-            const wingMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x666666,
-                shininess: 20
-            });
-            const wings = new THREE.Mesh(wingGeometry, wingMaterial);
-            wings.position.z = -2;
-            ship.add(wings);
-            
-            // Cockpit
-            const cockpitGeometry = new THREE.SphereGeometry(1.5, 8, 8);
-            const cockpitMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x64b5f6,
-                transparent: true,
-                opacity: 0.7,
-                shininess: 100
-            });
-            const cockpit = new THREE.Mesh(cockpitGeometry, cockpitMaterial);
-            cockpit.position.z = 4;
-            cockpit.scale.z = 0.7;
-            ship.add(cockpit);
-            
-            // Engine glow
-            const engineLight = new THREE.PointLight(0x00ffff, 0.5, 20);
-            engineLight.position.z = -6;
-            ship.add(engineLight);
-            
-            return ship;
-        }
-
-        for (let i = 0; i < 8; i++) {
-            const ship = createSpaceship();
-            ship.position.set(
-                Math.random() * 400 - 200,
-                Math.random() * 200 - 100,
-                Math.random() * 300 - 300
-            );
-            ship.rotation.y = Math.random() * Math.PI * 2;
-            ship.userData.speed = Math.random() * 0.3 + 0.2;
-            ship.userData.rotationSpeed = (Math.random() - 0.5) * 0.01;
-            spaceships.push(ship);
-            scene.add(ship);
-        }
-
-        camera.position.z = 100;
-
-        // Mouse interaction
-        let mouseX = 0;
-        let mouseY = 0;
-        let targetX = 0;
-        let targetY = 0;
-
-        document.addEventListener('mousemove', (e) => {
-            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-            mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
-        });
-
-        // Animation
-        function animate() {
-            requestAnimationFrame(animate);
-
-            // Rotate stars slowly
-            stars.rotation.y += 0.0002;
-            stars.rotation.x += 0.0001;
-
-            // Gentle camera movement
-            camera.position.x = Math.sin(Date.now() * 0.0001) * 10;
-            camera.position.y = Math.cos(Date.now() * 0.00015) * 5;
-            camera.lookAt(scene.position);
-
-            // Mouse interaction - smooth camera follow
-            targetX = mouseX * 30;
-            targetY = mouseY * 30;
-            camera.position.x += (targetX - camera.position.x) * 0.05;
-            camera.position.y += (targetY - camera.position.y) * 0.05;
-            camera.lookAt(scene.position);
-
-            // Parallax effect on clouds
-            clouds.forEach((cloud, i) => {
-                cloud.position.x += 0.1;
-                cloud.rotation.z += 0.001;
-                
-                // Mouse parallax
-                const depth = cloud.position.z / 400;
-                cloud.position.x += mouseX * depth * 0.5;
-                cloud.position.y += mouseY * depth * 0.5;
-                
-                if (cloud.position.x > 200) {
-                    cloud.position.x = -200;
-                }
-            });
-
-            // Mouse parallax on spaceships
-            spaceships.forEach((ship) => {
-                ship.position.x += ship.userData.speed;
-                ship.rotation.y += ship.userData.rotationSpeed;
-                ship.rotation.z = Math.sin(Date.now() * 0.001) * 0.1;
-                
-                // Parallax based on depth
-                const depth = ship.position.z / 300;
-                ship.position.x += mouseX * depth * 0.3;
-                ship.position.y += mouseY * depth * 0.3;
-                
-                if (ship.position.x > 250) {
-                    ship.position.x = -250;
-                    ship.position.y = Math.random() * 200 - 100;
-                    ship.position.z = Math.random() * 300 - 300;
-                }
-            });
-
-            renderer.render(scene, camera);
-        }
-
-        animate();
-
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Gagandeep Singh — software developer working on payments and loan calculations in loan servicing. Explore financial analytics, desktop, and mobile projects."
+    />
+    <meta name="theme-color" content="#f7f9f8" />
+    <title>Gagandeep Singh | Software Developer</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="Gagandeep Singh, home"
+        ><span class="brand-mark" aria-hidden="true">g.</span
+        ><span>Gagandeep Singh</span></a
+      >
+      <nav aria-label="Main navigation">
+        <a href="#expertise">Expertise</a><a href="#projects">Projects</a
+        ><a href="#contact">Contact <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
+    <main id="main">
+      <section class="hero container" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">
+            <span class="dot" aria-hidden="true"></span> Software developer /
+            financial software
+          </p>
+          <h1 id="hero-title">
+            Good software.<br />Down to the<br /><span>last decimal.</span>
+          </h1>
+          <p class="hero-description">
+            I’m Gagandeep. I work on payments and loan calculations in loan
+            servicing software, and build projects that turn complex data into
+            useful tools.
+          </p>
+          <div class="hero-actions">
+            <a class="button" href="#projects"
+              >Explore my work <span aria-hidden="true">↓</span></a
+            ><a class="text-link" href="https://github.com/gagan151"
+              >View GitHub <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <p class="hero-caption">
+            Software Developer — Payments &amp; Loan Calculations
+          </p>
+        </div>
+        <div
+          class="engineering-visual"
+          aria-label="Illustration of engineering priorities for financial software"
+        >
+          <div class="visual-top">
+            <span class="eyebrow">The engineering mindset</span
+            ><span class="visual-index">01 / 03</span>
+          </div>
+          <div class="visual-heading">Every detail<br />adds up.</div>
+          <div class="flow-line">
+            <span class="flow-icon" aria-hidden="true">+</span>
+            <div>
+              <span class="flow-label">01 · INPUT</span
+              ><strong>Payments</strong>
+            </div>
+            <span class="flow-end" aria-hidden="true">↘</span>
+          </div>
+          <div class="flow-line">
+            <span class="flow-icon" aria-hidden="true">=</span>
+            <div>
+              <span class="flow-label">02 · LOGIC</span
+              ><strong>Calculations</strong>
+            </div>
+            <span class="flow-end" aria-hidden="true">↘</span>
+          </div>
+          <div class="flow-line">
+            <span class="flow-icon" aria-hidden="true">✓</span>
+            <div>
+              <span class="flow-label">03 · PURPOSE</span
+              ><strong>Clarity &amp; confidence</strong>
+            </div>
+          </div>
+          <div class="visual-bottom">
+            <span
+              >Precision in the details.<br />Clarity in the experience.</span
+            ><span class="mini-grid" aria-hidden="true">▦</span>
+          </div>
+        </div>
+      </section>
+      <div class="discipline-strip">
+        <div class="container">
+          <span>Payments</span><span aria-hidden="true">/</span
+          ><span>Loan calculations</span><span aria-hidden="true">/</span
+          ><span>Financial software</span><span aria-hidden="true">/</span
+          ><span>Thoughtful engineering</span>
+        </div>
+      </div>
+      <section
+        id="expertise"
+        class="section container"
+        aria-labelledby="expertise-title"
+      >
+        <div class="section-intro">
+          <p class="eyebrow">01 / Professional focus</p>
+          <h2 id="expertise-title">
+            Complex problems.<br />Considered solutions.
+          </h2>
+          <p>
+            My professional work sits where software meets financial operations:
+            payments and calculations within a loan servicing business.
+          </p>
+        </div>
+        <div class="expertise-grid">
+          <article>
+            <span class="number">01</span>
+            <h3>Payments</h3>
+            <p>
+              Working on the software behind payment processes in loan
+              servicing, where the details of financial transactions matter.
+            </p>
+          </article>
+          <article>
+            <span class="number">02</span>
+            <h3>Loan calculations</h3>
+            <p>
+              Working with calculation logic in loan servicing software,
+              translating financial requirements into application behavior.
+            </p>
+          </article>
+          <article>
+            <span class="number">03</span>
+            <h3>Beyond the day job</h3>
+            <p>
+              Exploring financial analytics, native desktop applications, and
+              on-device computer vision through personal projects.
+            </p>
+          </article>
+        </div>
+      </section>
+      <section
+        id="projects"
+        class="section projects-section"
+        aria-labelledby="projects-title"
+      >
+        <div class="container">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">02 / Selected projects</p>
+              <h2 id="projects-title">
+                Built out of curiosity.<br />Engineered with purpose.
+              </h2>
+            </div>
+            <p>
+              Financial data, real-time systems, and a little basketball. A
+              selection of what I’m building.
+            </p>
+          </div>
+          <div class="featured-projects">
+            <article class="project-card">
+              <div class="project-art art-research" aria-hidden="true">
+                <span class="art-label">RESEARCH / SIGNALS</span>
+                <div class="signal-chart">
+                  <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i
+                  ><i></i><i></i><i></i>
+                </div>
+                <span class="art-footer"
+                  >From market noise to structured evidence.</span
+                >
+              </div>
+              <div class="project-body">
+                <p class="eyebrow">01 / Financial analytics</p>
+                <h3>Fomo Reader</h3>
+                <p>
+                  A Solana research dashboard that evaluates trader performance
+                  and collects evidence for realistically copyable trading
+                  signals.
+                </p>
+                <p class="project-detail">
+                  Combines market validation, token risk checks, and delayed
+                  simulated returns with an auditable candidate history.
+                </p>
+                <ul class="tags" aria-label="Technologies">
+                  <li>TypeScript</li>
+                  <li>PostgreSQL</li>
+                  <li>Docker</li>
+                </ul>
+                <a
+                  class="project-link"
+                  href="https://github.com/gagan151/fomo-reader"
+                  >Explore repository <span aria-hidden="true">↗</span></a
+                >
+              </div>
+            </article>
+            <article class="project-card">
+              <div class="project-art art-trading" aria-hidden="true">
+                <span class="art-label">DESKTOP / REAL-TIME DATA</span>
+                <div class="candle-chart">
+                  <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i
+                  ><i></i>
+                </div>
+                <span class="art-footer">A clearer view of the market.</span>
+              </div>
+              <div class="project-body">
+                <p class="eyebrow">02 / Desktop engineering</p>
+                <h3>Trading Dashboard</h3>
+                <p>
+                  A cross-platform desktop dashboard for index futures, with
+                  streaming charts, market sessions, and liquidity sweep
+                  detection.
+                </p>
+                <p class="project-detail">
+                  A Rust core powers live data, with a React interface and
+                  native notifications for detected market events.
+                </p>
+                <ul class="tags" aria-label="Technologies">
+                  <li>Rust</li>
+                  <li>Tauri</li>
+                  <li>React</li>
+                  <li>TypeScript</li>
+                </ul>
+                <a
+                  class="project-link"
+                  href="https://github.com/gagan151/Trading-Dashboard"
+                  >Explore repository <span aria-hidden="true">↗</span></a
+                >
+              </div>
+            </article>
+            <article class="project-card">
+              <div class="project-art art-basketball" aria-hidden="true">
+                <span class="art-label">MOBILE / COMPUTER VISION</span>
+                <div class="court">
+                  <div class="hoop"></div>
+                  <div class="trajectory"></div>
+                  <div class="ball"></div>
+                </div>
+                <span class="art-footer">On the court. On-device.</span>
+              </div>
+              <div class="project-body">
+                <p class="eyebrow">03 / On-device intelligence</p>
+                <h3>GreenShot</h3>
+                <p>
+                  An iPhone app that tracks a basketball through the camera,
+                  analyzes shot trajectories, and provides audio feedback.
+                </p>
+                <p class="project-detail">
+                  Runs detection on-device using CoreML and Vision, with a live
+                  trajectory overlay and tap-to-set hoop position.
+                </p>
+                <ul class="tags" aria-label="Technologies">
+                  <li>Swift</li>
+                  <li>CoreML</li>
+                  <li>Vision</li>
+                  <li>iOS</li>
+                </ul>
+                <a
+                  class="project-link"
+                  href="https://github.com/gagan151/GreenShot"
+                  >Explore repository <span aria-hidden="true">↗</span></a
+                >
+              </div>
+            </article>
+          </div>
+          <div class="repository-heading">
+            <div>
+              <p class="eyebrow">The complete collection</p>
+              <h3>All public repositories</h3>
+            </div>
+            <a
+              class="text-link"
+              href="https://github.com/gagan151?tab=repositories"
+              >Browse GitHub <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <p id="repository-status" class="repository-status" role="status">
+            Saved project collection. Live GitHub updates are available with
+            JavaScript.
+          </p>
+          <div id="repository-list" class="repository-list">
+            <article class="repository">
+              <div>
+                <h4>
+                  <a href="https://github.com/gagan151/fomo-reader"
+                    >fomo-reader <span aria-hidden="true">↗</span></a
+                  >
+                </h4>
+                <p>
+                  Solana trader research, market validation, and evidence-based
+                  signal analysis.
+                </p>
+              </div>
+              <span class="language">TypeScript</span>
+            </article>
+            <article class="repository">
+              <div>
+                <h4>
+                  <a href="https://github.com/gagan151/Trading-Dashboard"
+                    >Trading-Dashboard <span aria-hidden="true">↗</span></a
+                  >
+                </h4>
+                <p>
+                  Cross-platform futures dashboard with live charts and market
+                  event detection.
+                </p>
+              </div>
+              <span class="language">Rust</span>
+            </article>
+            <article class="repository">
+              <div>
+                <h4>
+                  <a href="https://github.com/gagan151/GreenShot"
+                    >GreenShot <span aria-hidden="true">↗</span></a
+                  >
+                </h4>
+                <p>
+                  On-device basketball detection and shot trajectory analysis
+                  for iPhone.
+                </p>
+              </div>
+              <span class="language">Swift</span>
+            </article>
+            <article class="repository">
+              <div>
+                <h4>
+                  <a href="https://github.com/gagan151/gagan151.github.io"
+                    >gagan151.github.io <span aria-hidden="true">↗</span></a
+                  >
+                </h4>
+                <p>GitHub Pages website repository.</p>
+              </div>
+              <span class="language">HTML</span>
+            </article>
+            <article class="repository">
+              <div>
+                <h4>
+                  <a href="https://github.com/gagan151/Portfolio-Website"
+                    >Portfolio-Website <span aria-hidden="true">↗</span></a
+                  >
+                </h4>
+                <p>The source for this software developer portfolio.</p>
+              </div>
+              <span class="language">HTML</span>
+            </article>
+          </div>
+        </div>
+      </section>
+      <section
+        id="contact"
+        class="section contact container"
+        aria-labelledby="contact-title"
+      >
+        <div>
+          <p class="eyebrow">03 / Get in touch</p>
+          <h2 id="contact-title">Let’s build something<br />that counts.</h2>
+          <p>
+            Interested in my work? Explore my code and connect with me on
+            GitHub.
+          </p>
+        </div>
+        <a class="button" href="https://github.com/gagan151"
+          >Find me on GitHub <span aria-hidden="true">↗</span></a
+        >
+      </section>
+    </main>
+    <footer class="container">
+      <a class="brand" href="#"
+        ><span class="brand-mark" aria-hidden="true">g.</span
+        ><span>Gagandeep Singh</span></a
+      >
+      <p>Software, with attention to detail.</p>
+      <a href="#main">Back to top ↑</a>
+    </footer>
+  </body>
 </html>
